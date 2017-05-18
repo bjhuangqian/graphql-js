@@ -156,6 +156,13 @@ export function execute(
 
   // If a valid context cannot be created due to incorrect arguments,
   // this will throw an error.
+  assertValidExecutionArguments(
+    schema,
+    document,
+    variableValues
+  );
+
+  // If the provided document contains issues, this will throw an error.
   const context = buildExecutionContext(
     schema,
     document,
@@ -213,21 +220,11 @@ export function addPath(prev: ResponsePath, key: string | number) {
   return { prev, key };
 }
 
-/**
- * Constructs a ExecutionContext object from the arguments passed to
- * execute, which we will pass throughout the other execution methods.
- *
- * Throws a GraphQLError if a valid execution context cannot be created.
- */
-export function buildExecutionContext(
+export function assertValidExecutionArguments(
   schema: GraphQLSchema,
   document: DocumentNode,
-  rootValue: mixed,
-  contextValue: mixed,
-  rawVariableValues: ?{[key: string]: mixed},
-  operationName: ?string,
-  fieldResolver: ?GraphQLFieldResolver<any, any>
-): ExecutionContext {
+  rawVariableValues: ?{[key: string]: mixed}
+): void {
   invariant(schema, 'Must provide schema');
   invariant(document, 'Must provide document');
   invariant(
@@ -243,7 +240,23 @@ export function buildExecutionContext(
     'variable value. Perhaps look to see if an unparsed JSON string ' +
     'was provided.'
   );
+}
 
+/**
+ * Constructs a ExecutionContext object from the arguments passed to
+ * execute, which we will pass throughout the other execution methods.
+ *
+ * Throws a GraphQLError if a valid execution context cannot be created.
+ */
+export function buildExecutionContext(
+  schema: GraphQLSchema,
+  document: DocumentNode,
+  rootValue: mixed,
+  contextValue: mixed,
+  rawVariableValues: ?{[key: string]: mixed},
+  operationName: ?string,
+  fieldResolver: ?GraphQLFieldResolver<any, any>
+): ExecutionContext {
   const errors: Array<GraphQLError> = [];
   let operation: ?OperationDefinitionNode;
   const fragments: {[name: string]: FragmentDefinitionNode} =
